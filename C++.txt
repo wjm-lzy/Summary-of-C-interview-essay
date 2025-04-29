@@ -45,13 +45,13 @@ note:智能指针是可以手动释放的，使用reset()//释放资源并将指
 
 ### 这里补充一下，面试官看到这里觉得你小子很懂了？？？，那么继续向下追问：你是否能写一下智能指针的实现
 
-1.std::unique_str
+1.std::unique_str（这个的实现有点类似于设计模式中的懒汉模式的单例模式）
   template<typename T>
   class UniquePtr {
   private:
       T* ptr;
   public:
-      explicit UniquePtr(T* p = nullptr) : ptr(p) {}//构造函数，为p复制
+      explicit UniquePtr(T* p = nullptr) : ptr(p) {}//构造函数，explicit 关键字用于防止隐式类型转换​​
       ~UniquePtr() { delete ptr; }
 
     // 禁用复制
@@ -65,7 +65,7 @@ note:智能指针是可以手动释放的，使用reset()//释放资源并将指
               delete ptr;
               ptr = other.ptr;
               other.ptr = nullptr;
-            }<br>
+            }
         return *this;
       }
   };
@@ -82,6 +82,17 @@ note:智能指针是可以手动释放的，使用reset()//释放资源并将指
   在操作系统中存在一个系统打开文件表，通过引用计数来跟踪共享文件的用户数量，这是实现多线程和多进程共享文件的核心机制之一<br>
   首选每个进程维护一个进程打开文件表，这个里面记录了进程打开的文件，同时表中的每个条目（文件描述符），注意打开文件最初是使用文件名去找寻文件对应的inode，找到后就可以使用文件描述符访问文件了<br>
   随后系统打开文件表中包含了所有被打开的文件，这里使用引用计数来标识有多少进程正在使用这个文件<br>
+
+### C++11新特性的了解
+1.自动类型推导（手撕的时候没少用）
+2.智能指针，上面已经介绍
+3.右值引用和移动语义
+4.Lambda 表达式​ [capture](params){ body } //定义匿名函数，简化回调。上述顺序为捕获遍历，定义，函数体
+5.nullptr 关键字​
+6.override 和 final 关键字​：override​​：显式标记派生类虚函数覆盖基类虚函数，final​​：禁止类被继承或虚函数被覆盖
+7.线程支持（std::thread, std::mutex 等）
+8. 类型别名（using 替代 typedef）​
+9. 默认和删除函数（=default, =delete）
 
 
   
