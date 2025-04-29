@@ -45,30 +45,30 @@ note:智能指针是可以手动释放的，使用reset()//释放资源并将指
 
 ### 这里补充一下，面试官看到这里觉得你小子很懂了？？？，那么继续向下追问：你是否能写一下智能指针的实现
 
-1.std::unique_str<br>
-  template<typename T><br>
-  class UniquePtr {<br>
+1.std::unique_str
+  template<typename T>
+  class UniquePtr {
   private:
-      T* ptr;<br>
-  public:<br>
-      explicit UniquePtr(T* p = nullptr) : ptr(p) {}//构造函数，为p复制<br>
-      ~UniquePtr() { delete ptr; }<br>
+      T* ptr;
+  public:
+      explicit UniquePtr(T* p = nullptr) : ptr(p) {}//构造函数，为p复制
+      ~UniquePtr() { delete ptr; }
 
-    // 禁用复制<br>
-      UniquePtr(const UniquePtr&) = delete;<br>
-      UniquePtr& operator=(const UniquePtr&) = delete;<br>
+    // 禁用复制
+      UniquePtr(const UniquePtr&) = delete;
+      UniquePtr& operator=(const UniquePtr&) = delete;
 
-    // 支持移动语义<br>
-      UniquePtr(UniquePtr&& other) : ptr(other.ptr) { other.ptr = nullptr; }<br>
-      UniquePtr& operator=(UniquePtr&& other) {<br>
-          if (this != &other) {<br>
-              delete ptr;<br>
-              ptr = other.ptr;<br>
-              other.ptr = nullptr;<br>
+    // 支持移动语义
+      UniquePtr(UniquePtr&& other) : ptr(other.ptr) { other.ptr = nullptr; }
+      UniquePtr& operator=(UniquePtr&& other) {
+          if (this != &other) {
+              delete ptr;
+              ptr = other.ptr;
+              other.ptr = nullptr;
             }<br>
-        return *this;<br>
-      }<br>
-  };<br>
+        return *this;
+      }
+  };
 
 2.std::shared_ptr
   这个实现比较复杂，读者可以自行查阅资料，涉及到的函数较多，但是不实现的话思想还是简单的<br>
