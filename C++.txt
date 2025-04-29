@@ -1,0 +1,44 @@
+# 美团1
+### 内存static和dynamic的区别
+static（静态）​​ 和 ​​dynamic（动态）
+static:内存分配在编译的时候确定，大小和生命周期固定，无需运行时分配开销
+dynamic:内存分配在运行时动态申请和释放（new），适应不确定的需求
+
+### const 修饰的变量，可以被修改吗
+可以通过引用修改
+实例代码如下
+const int x = 100;
+int *p = (int*)&x;//得到x的地址，通过定义指针接收
+*p = 200;
+上述代码就可以绕过const的限制
+
+### 智能指针的介绍
+使用智能指针式为了自动释放资源，避免内存泄漏（忘记delete）和程序崩溃（多次delete）
+C++11引入了如下智能指针：包含在头文件<memory>中
+1.std::unique_ptr(独占所有权)
+  同一时间只能有一个unique_ptr拥有资源，不可复制，但支持移动语义（std::move）(补充：相信有的朋友不知道什么是移动语义，这道题结束介绍)
+  管理动态分配的单个对象或者数组
+  代码实例：
+    std::unique_ptr<int> p1 = std::make_unique<int>(10);
+    std::unique_ptr<int[]> p2 = std::make_unique<int>(5);
+    //转移所有权
+    std::unique_ptr<int> p3 = std::move(p1);
+2.std::shared_ptr(共享所有权)
+  多个shared_ptr共享一个资源，通过引用计数的方式跟踪资源所有者数量，计数为0的时候自动释放资源
+  // 创建 shared_ptr
+  std::shared_ptr<int> p1 = std::make_shared<int>(20);
+  std::shared_ptr<int> p2 = p1; // 引用计数 +1
+  
+ （如果你学过操作系统文件管理中的共享文件打开文件表的话，理解应该不难）
+3.std::weak_ptr(弱引用)
+  不增加引用计数，不拥有资源所有权，用于解决shared_ptr的循环引用问题，经常用于转换this指针
+4.auto_str(已经不使用了)
+  所有权转移时会导致原指针变为 nullptr，容易引发错误，不需要记忆
+智能指针是可以手动释放的，使用reset()//释放资源并将指针置为nullptr
+### 这里补充一下，面试官看到这里觉得你小子很懂了？？？，那么继续向下追问：你是否能写一下智能指针的实现
+
+1.std::unique_str
+  
+
+
+  
