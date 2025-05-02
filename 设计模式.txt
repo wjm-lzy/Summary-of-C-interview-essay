@@ -1,1 +1,206 @@
+对于C++编程中的思想，最常见的就是考察设计模式了
+那么我们在面试中常考的设计模式包含以下几种：单例模式，
+接下来我们按顺序介绍
 
+1.单例模式：
+	一个类只能创建一个实例：常应用于日志模块，数据库模块
+	单例模式需要具备以下4要素
+		1.构造函数私有化
+		2.禁用拷贝构造，赋值重载
+			类名 （const 类名 &） = delete; 禁用拷贝构造
+			类名 &operator= （const 类名&）= delete; 禁用赋值构造
+			上述两个方法确保构造函数只会被调用一次
+		3.定义唯一对象，static：类内定义，类外初始化
+		4.定义接口获取实例：【使用静态方法】原因：普通方法依赖对象，现在不存在对象
+那么所需条件已经具备，那么我们可以着手写一个单例模式的示例
+class Singleton{
+public:
+	static Singleton * getInstance()//获取唯一实例对象的接口方法
+	{
+		return &instance;//注意这里返回的为地址，需要用指针接收
+	}
+private:
+	Singleton(){}
+	Singleton(const Singleton&) = delete;
+	Singleton &operator= (const Singleton&) = delete;
+	static Singleton instance;//注意这里我定义的实例
+};
+
+Singleton Singleton::instance; //类外初始化
+
+想必你肯定觉得上述代码很简单，只需要考虑四要素即可
+在实际考察中我们还会将其结合懒汉和饿汉的设计，下面给出具体的介绍
+
+饿汉模式下的单例模式：一定是线程安全的：在软件启动时初始化，肯定会延长软件启动时间
+	还没有获取实例对象，实例对象就已经产生了。
+	其实我们的上述代码就是饿汉式的
+
+懒汉模式下的单例模式：需要注意的是我们需要的是多线程安全。
+	只有获取的时候才产生实例，注意与懒汉模式的区别
+//需要加锁实现互斥
+std::mutex mtx; //定义锁
+class Singleton{
+public:
+	static Singleton * getInstance()//获取唯一实例对象的接口方法
+	{
+		if(instance == nullptr)
+		{
+			lock_guard<std::mutex> guard(mtx);//加锁
+			if(instance == nullptr)
+			{
+				instance = new Singleton();
+			}
+		}
+		return instance;
+	}
+private:
+	static Singleton *volatile instance;//注意这里需要使用volatile修饰，避免对该变量优化
+	Singleton(){}
+	Singleton(const Singleton&) = delete;
+	Singleton &operator= (const Singleton&) = delete;
+};
+
+Singleton* Singleton::instance = nullptr; //类外初始化
+
+上述做法使用锁+双重判断实现线程安全的懒汉模式，下面提供另一种模式
+核心为static关键字：第一次运行的时候才初始化，note：C++11保证static定义是线程安全的
+class Singleton{
+public:
+	static Singleton * getInstance()//获取唯一实例对象的接口方法
+	{
+		static Singleton instance;	
+		return &instance;
+	}
+private:
+	Singleton(){}
+	Singleton(const Singleton&) = delete;
+	Singleton &operator= (const Singleton&) = delete;
+};
+
+Singleton* Singleton::instance = nullptr; //类外初始化
+
+好,上述已经成功介绍了单例模式
+
+
+那么接下来为第二个设计模式
+2.工厂模式
+工厂模式分为三种：简单工厂（这个实际上不包含），工厂方法，抽象工厂
+为什么叫工厂：主要是封装了对象的创建
+
+下面以汽车为例
+class Car
+{
+public:
+	Car(string name) : Name(name) { }
+	virtual void show() = 0;
+protected:
+	string Name;
+};
+
+class BaoMa :public Car
+{
+public:
+	BaoMa(string name) : Car(name) { }
+	void show(){ cout<<"get a BaoMa"<<endl; }
+};
+
+class AoDi :public Car
+{
+public:
+	AoDi(string name) : Car(name) { }
+	void show(){ cout<<"get a Aodi"<<endl; }
+};
+
+enum CarType{ baoma,aodi }; //定义枚举类型
+
+class SimpleFactory
+{
+public:
+	Car* createCar(CarType ct)
+	{
+		switch(ct)
+		{
+		case baoma:
+			return new BaoMa("X1");
+		case aodi:
+			return new AoDi("A6");
+		default:
+			break;
+		}
+		return nullptr;
+	}
+};
+
+上述代码封装了对象的创建，函数调用的时候只需要通过工厂调用对应的函数即可，而不需要了解内部实现
+	unique_ptr<SimpleFactory> factorty(new SimpleFactory());
+创建一个宝马
+	unique_ptr<Car> p1(factory->createCar(BaoMa));
+	p1->show();
+简单工厂不好的地方：
+	1.不同汽车的创建应该在不同工厂
+	2.工厂应该对修改关闭
+
+基于这样的缺点：工厂方法进行了改进
+//创建工厂基类:后面各种工厂直接继承就可以了
+class Factory
+{
+public:
+	virtual Car * createCar(string name) = 0;
+};
+//宝马工厂
+class BaoMaFactory:public Factory
+{
+public:
+	Car * createCar(string name)
+	{
+		return new BaoMa(name);
+	}
+};
+
+在实际上，通常有关联关系的产品系列在同一工厂，工厂方法无法实现此功能
+假设我还要在工厂中生产车灯,那么就需要使用抽象工厂这一个概念
+抽象工厂：对一组有关联关系的产品簇提供产品对象的统一创建
+// 车灯基类
+class Light
+{
+pubilc:
+	virtual void show()=0;
+};
+
+classs BaoMaLight : public Light
+{
+public:
+	void show(){ cout<<"get a Light"<<endl; }
+};
+
+//抽象工厂
+class AbstractFactory
+{
+public:
+	virtual Car * createCar(string name) = 0;
+	virtual Light * createCarLight() = 0;
+};
+这些代码都比较简单，只要理解思想很容易就可以写出来，后面的代码就不再赘述了
+
+工厂方法：提供了一个纯虚函数创建产品，定义派生类负责创建对应的产品，可以做到不同产品在不同工厂创建，实现对现有工厂和产品修改封闭
+
+抽象工厂：把有关联关系的，属于一个产品簇的所有产品创建的接口函数，放到一个抽象工厂中
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
