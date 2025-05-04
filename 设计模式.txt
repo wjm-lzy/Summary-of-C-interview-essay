@@ -187,18 +187,209 @@ public:
 抽象工厂：把有关联关系的，属于一个产品簇的所有产品创建的接口函数，放到一个抽象工厂中
 
 
+3. 观察者模式（也叫做观察者-监听者模式，发布-订阅模式）
+主要关注对象的一对多关系，也就是多个对象都依赖于一个对象，当该对象状态改变时，其余对象都能得到对应的通知
+如：一组数据（数据对象）->曲线图，柱状图，圆饼图
+主题有更改，应该及时通知相应观察者去处理相应的事件
+
+class Observer
+{
+public:
+	//处理消息接口
+	virtual void handle(int msgid) = 0;
+};
+
+class Observer1
+{
+public:
+	//处理消息接口
+	void handle(int msgid)
+	{
+		switch(msgid)
+		{
+		case 1:
+			cout<<"get 1"<<endl;
+			break;
+		case 2:
+			cout<<"get 2"<<endl;
+			break;
+		default:
+			cout<<"get error"<<endl;
+			break;
+		}
+	}
+}；
+
+class Observer2
+{
+public:
+	//处理消息接口
+	void handle(int msgid)
+	{
+		switch(msgid)
+		{
+		case 2:
+			cout<<"get 2"<<endl;
+			break;
+		default:
+			cout<<"get error"<<endl;
+			break;
+		}
+	}
+}；
+
+class Subject
+{
+public:	
+	//添加对应观察者
+	void addObserver(Observer* obser,int msgid)
+	{
+		_subMap[msgid].push_back(obser);
+	}
+	//通知观察者
+	void dispatch(int msg)
+	{
+		auto it = _subMap.find(msgid);
+		if(it != _subMap.end())
+		{
+			for(Observer *pObser:it->second)
+			{
+				pObser->handle(msgid):
+			}
+		}
+	}
+private:
+	//前面的int代表消息id，后面表示对其感兴趣的观察者列表
+	unordered_map<int,list<Observer*>> _subMap;
+};
+
+观察者模式实际上就是创建一个主题类，然后当有消息来到的时候，主题负责通知各个观察者，也就是函数调用
+
+
+4.代理Proxy模式：通过代理类来控制实际对象的访问权限
+客户  助理Proxy  老板：委托类
+
+//下面为一个案例，将视频分为Vip和免费，不同身份可以获取的视频不同
+class VideoSite
+{
+	virtual void freeMovie() = 0;//免费电影
+	virtual void vipMovie() = 0;//vip电影
+}；
+//这个是我们的网站，实现看vip电影和free电影，也就是我们的委托类
+class FixBugVideoSite: public Video Site
+{
+public:
+	virtual void freeMovie()
+	{
+		cout<<"see free"<<endl;
+	}
+	virtual void vipMovie()
+	{
+		cout<<"see vip"<<endl;
+	}
+};
+
+//下面就是我们免费电影的代理
+class FreeVideoSiteProxy : public VideoSite
+{
+public:
+	FreeVideoSiteProxy()
+	{
+		pVideo = new FixBugVideoSite();
+	}
+	~ FreeVideoSiteProxy()
+	{
+		delete pVideo;
+	}
+	
+	virtual void freeMovie() 
+	{
+		pVideo->freeMovie();//通过代理对象的freeMovie，来访问真正委托类对象的freeMovie
+	}
+	virtual void vipMovie() 
+	{
+		cout<<"你没充钱，不让你访问"；
+	}
+
+
+private:
+	VideoSite *pVideo;
+}；
+
+实际上上述代理模式的原理在于创建一个代理类，在代理类中定义委托类指针，不同的代理类指行不同的函数
+基类指针指向代理类对象，都使用基类指针保证安全
 
 
 
+5.适配器模式
+让不兼容的接口可以一起工作
+示例
+电脑 -> 投影 ->投影仪 
+VGA HDMI Typec 有这三种接口
+如果VGA的电脑，投影仪也是VGA，那么就不需要转换
+class VGA
+{
+public:
+	virtual void play() = 0;
+	string getType() const{return "VGA";}
+};
+
+//这个就是支持VGA接口的投影仪
+class TV01 : public VGA
+{
+public:
+	void play()
+	{
+		cout<<"VGA接口"<<endl;
+	}
+};
+
+//这个就是支持VGA接口的电脑
+class Computer : public VGA
+{
+public:
+	void playVedio(VGA *pVGA)
+	{
+		pVGA->play();
+	}
+};
+//这时候有一批新的投影仪，只支持HDMI接口
+class HDMI
+{
+public:
+	virtual void play() = 0;
+};
+class TV02 : public HDMI
+{
+public:
+	void play()
+	{
+		cout<<"HDMI接口"<<endl;
+	}
+};
+此时你使用电脑连接新的投影仪，无法连接
+
+换一个电脑：代码重构
+但是实际上很难去重构
+方法2：买一个转换头，转换信号：也就是适配器类
+
+class VGAtoHDMI : public VGA
+{
+public:
+	VGAtoHDMI(HDMI *p):phdmi(p){};
+	void play()//该方法相当于转换头，做信号转换的
+	{
+		phdmi->play():
+	}
+private:
+	HDMI *phdmi;
+};
+
+这个适配器模式实际上就是重写了老接口的函数，转为新接口的函数，就是更换组件
 
 
-
-
-
-
-
-
-
+6.装饰器模式
+和代理模式非常接近，主要是增加现有类的功能
 
 
 
